@@ -53,7 +53,7 @@ const Dashboard = () => {
             <LayoutDashboard size={18} className="text-indigo-400" />
             <span className="font-medium text-sm">Dashboard</span>
           </button>
-          <button className="w-full flex items-center space-x-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-white/[0.02] rounded-xl transition-all group">
+          <button onClick={() => navigate("/studio")} className="w-full flex items-center space-x-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-white/[0.02] rounded-xl transition-all group">
             <Code size={18} className="group-hover:text-purple-400 transition-colors" />
             <span className="font-medium text-sm">AI Studio</span>
           </button>
@@ -125,7 +125,7 @@ const Dashboard = () => {
               <p className="text-slate-400 mb-8 max-w-md leading-relaxed">
                 Harness the OmniStack AI multi-agent system. Generate complete MERN architectures, responsive React components, or React Native screens in seconds.
               </p>
-              <button className="relative inline-flex h-12 overflow-hidden rounded-full p-[1px] focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-50 transition-transform active:scale-95">
+              <button onClick={() => navigate("/studio")} className="relative inline-flex h-12 overflow-hidden rounded-full p-[1px] focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-50 transition-transform active:scale-95">
                 <span className="absolute inset-[-1000%] animate-[spin_2s_linear_infinite] bg-[conic-gradient(from_90deg_at_50%_50%,#E2CBFF_0%,#393BB2_50%,#E2CBFF_100%)]" />
                 <span className="inline-flex h-full w-full cursor-pointer items-center justify-center rounded-full bg-slate-950 px-8 py-1 text-sm font-medium text-white backdrop-blur-3xl space-x-2">
                   <Sparkles size={16} />

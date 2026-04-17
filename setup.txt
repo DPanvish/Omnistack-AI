@@ -178,3 +178,24 @@
    - Created `src/pages/Login.jsx` to call `POST http://localhost:5000/api/auth/login`, save credentials, and navigate to the dashboard.
    - Created `src/pages/Register.jsx` to call `POST http://localhost:5000/api/auth/register`, save credentials, and navigate to the dashboard.
    - Created `src/pages/Dashboard.jsx` as the initial protected app area placeholder.
+
+9. Add protected frontend studio and code editor
+
+   Command:
+
+   ```bash
+   cd client
+   npm install @monaco-editor/react
+   ```
+
+   Installed dependencies:
+
+   - `@monaco-editor/react`: React wrapper for the Monaco code editor, used to display generated code with editor features and dark theme styling.
+
+   Frontend setup changes:
+
+   - Created `src/components/ProtectedRoute.jsx` to redirect unauthenticated users to `/login`.
+   - Wrapped `/dashboard` and `/studio` inside protected routes in `src/App.jsx`.
+   - Created `src/pages/Studio.jsx` with a prompt panel, simulated code generation flow, Monaco editor output, and copy-to-clipboard action.
+   - Updated `src/pages/Dashboard.jsx` with the logged-in dashboard UI, logout handling, usage card, and entry point for the AI Studio.
+   - Added custom Tailwind utility/background styling in `src/index.css` for the grid background and ambient glow effects.
