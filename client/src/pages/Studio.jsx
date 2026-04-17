@@ -21,6 +21,8 @@ const Studio = () => {
   const [projectId, setProjectId] = useState(existingProject?._id || null);
   const [projectName, setProjectName] = useState(existingProject?.name || "Untitled Workspace");
   const [isSaved, setIsSaved] = useState(true);
+
+  const [filePrompt, setFilePrompt] = useState('');
   
   const token = useAuthStore((state) => state.token);
   const navigate = useNavigate();
@@ -72,6 +74,37 @@ const Studio = () => {
       setTimeout(() => setIsSaved(false), 3000); 
     }
   });
+
+  const modifyCodeMutation = useMutation({
+    mutationFn: async (userPrompt) => {
+      const res = await fetch('http://localhost:5000/api/ai/modify', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}` 
+        },
+        body: JSON.stringify({ 
+          prompt: userPrompt,
+          currentCode: files[activeFile],
+          fileName: activeFile
+        }),
+      });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.message || 'Failed to modify code');
+      return result;
+    },
+    onSuccess: (data) => {
+      // Update JUST the active file with the new code
+      setFiles(prev => ({ ...prev, [activeFile]: data.code }));
+      setFilePrompt(''); // Clear the input
+      setIsSaved(false); // Mark workspace as unsaved
+    },
+  });
+
+  const handleModify = () => {
+    if (!filePrompt.trim() || !files[activeFile]) return;
+    modifyCodeMutation.mutate(filePrompt);
+  };
 
   const handleGenerate = () => {
     if (!prompt.trim()) return;
@@ -210,7 +243,7 @@ const Studio = () => {
         </aside>
 
         {/* Pane 3: Code Editor (Right) */}
-        <section className="flex-1 flex flex-col bg-[#1e1e1e]">
+        <section className="flex-1 flex flex-col bg-[#1e1e1e] relative">
           <div className="flex bg-[#181818] overflow-x-auto custom-scrollbar">
             {Object.keys(files).map((fileName) => (
                <div 
@@ -228,15 +261,17 @@ const Studio = () => {
             ))}
           </div>
           
-          <div className="flex-1 relative">
+          <div className="flex-1 relative pb-16"> {/* Added pb-16 to make room for the bar */}
             <AnimatePresence>
-              {generateCodeMutation.isPending && (
+              {(generateCodeMutation.isPending || modifyCodeMutation.isPending) && (
                 <motion.div 
                   initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                   className="absolute inset-0 bg-[#1e1e1e]/80 backdrop-blur-sm z-10 flex flex-col items-center justify-center"
                 >
                   <div className="w-12 h-12 border-4 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin mb-4"></div>
-                  <p className="text-indigo-400 font-medium">Agents are structuring files...</p>
+                  <p className="text-indigo-400 font-medium">
+                    {modifyCodeMutation.isPending ? 'Editing file...' : 'Structuring files...'}
+                  </p>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -250,14 +285,30 @@ const Studio = () => {
                 setFiles(prev => ({ ...prev, [activeFile]: value }));
                 setIsSaved(false);
               }}
-              options={{
-                minimap: { enabled: false },
-                fontSize: 14,
-                padding: { top: 16 },
-                scrollBeyondLastLine: false,
-                wordWrap: "on",
-              }}
+              options={{ minimap: { enabled: false }, fontSize: 14, padding: { top: 16 }, scrollBeyondLastLine: false, wordWrap: "on" }}
             />
+          </div>
+
+          {/* Floating File-Level Iterative Prompt */}
+          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 w-full max-w-2xl px-4 z-20">
+            <div className="bg-[#0a0a0a]/90 backdrop-blur-xl border border-white/[0.1] rounded-2xl shadow-2xl p-2 flex items-center space-x-3">
+              <Sparkles size={18} className="text-indigo-400 ml-2 shrink-0" />
+              <input 
+                type="text"
+                value={filePrompt}
+                onChange={(e) => setFilePrompt(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleModify()}
+                placeholder={`Ask AI to edit ${activeFile} (e.g., "Add a hover effect to the button")`}
+                className="flex-1 bg-transparent border-none outline-none text-sm text-white placeholder:text-slate-500"
+              />
+              <button 
+                onClick={handleModify}
+                disabled={modifyCodeMutation.isPending || !filePrompt.trim()}
+                className="p-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl disabled:opacity-50 transition-colors"
+              >
+                <Send size={16} />
+              </button>
+            </div>
           </div>
         </section>
       </main>
