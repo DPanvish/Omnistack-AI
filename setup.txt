@@ -1,0 +1,107 @@
+1. Create the frontend React client with Vite
+
+   Command:
+
+   ```bash
+   npm create vite@latest client -- --template react
+   cd client
+   npm install
+   ```
+
+   Installed dependencies:
+
+   - `react`: Core React library used to build the frontend UI with reusable components.
+   - `react-dom`: Connects React components to the browser DOM so the app can render in `index.html`.
+
+   Installed dev dependencies:
+
+   - `vite`: Frontend build tool and development server for fast local development.
+   - `@vitejs/plugin-react`: Adds React support to Vite, including JSX handling and React Fast Refresh.
+   - `eslint`: Static analysis tool used to catch JavaScript and React code issues.
+   - `@eslint/js`: Provides the recommended base ESLint rules for JavaScript.
+   - `eslint-plugin-react-hooks`: Enforces the rules of React Hooks.
+   - `eslint-plugin-react-refresh`: Helps keep React Fast Refresh compatible with component exports.
+   - `globals`: Provides predefined global variables for ESLint configuration.
+   - `@types/react`: Type definitions for React, useful for editor IntelliSense and typed tooling.
+   - `@types/react-dom`: Type definitions for React DOM, useful for editor IntelliSense and typed tooling.
+
+2. Install Tailwind CSS for styling
+
+   Command:
+
+   ```bash
+   cd client
+   npm install tailwindcss @tailwindcss/vite
+   ```
+
+   Installed dependencies:
+
+   - `tailwindcss`: Utility-first CSS framework used to style the React UI directly with Tailwind classes.
+   - `@tailwindcss/vite`: Vite integration for Tailwind CSS so Tailwind can be processed during development and production builds.
+
+   Setup changes:
+
+   - Added Tailwind to the Vite plugins list in `vite.config.js`.
+   - Added `@import "tailwindcss";` in `src/index.css` so Tailwind styles are available globally in the React app.
+
+3. Install frontend UI, routing, animation, and state dependencies
+
+   Command:
+
+   ```bash
+   cd client
+   npm install framer-motion lucide-react react-router-dom zustand
+   ```
+
+   Installed dependencies:
+
+   - `framer-motion`: Animation library used to add smooth transitions, motion effects, and interactive UI animations in React.
+   - `lucide-react`: React icon library used for clean, customizable SVG icons throughout the UI.
+   - `react-router-dom`: Routing library used to create client-side pages and navigation in the React app.
+   - `zustand`: Lightweight state management library used to share app state across React components without heavy boilerplate.
+
+4. Initialize the backend server package
+
+   Command:
+
+   ```bash
+   mkdir server
+   cd server
+   npm init -y
+   ```
+
+   Setup changes:
+
+   - Created `server/package.json` to manage backend scripts, dependencies, package metadata, and Node.js module settings.
+   - Added `"type": "module"` so backend JavaScript files can use modern ES module `import` and `export` syntax.
+
+   Installed dependencies:
+
+   - No backend npm dependencies were installed in this step.
+
+5. Install backend API dependencies
+
+   Command:
+
+   ```bash
+   cd server
+   npm install express mongoose dotenv cors helmet
+   npm install -D nodemon
+   ```
+
+   Installed dependencies:
+
+   - `express`: Web framework used to create the backend API server, routes, middleware, and request/response handling.
+   - `mongoose`: MongoDB object modeling library used to define schemas, models, and database queries.
+   - `dotenv`: Loads environment variables from a `.env` file for values like database URLs, ports, and secrets.
+   - `cors`: Enables Cross-Origin Resource Sharing so the frontend client can safely call the backend API from a different origin.
+   - `helmet`: Adds common security-related HTTP headers to help protect the Express app.
+
+   Installed dev dependencies:
+
+   - `nodemon`: Automatically restarts the backend server during development when files change.
+
+   Setup changes:
+
+   - Added `start` script to run the backend with Node.js.
+   - Added `dev` script to run the backend with Nodemon during development.
