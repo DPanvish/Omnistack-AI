@@ -49,15 +49,15 @@ const Dashboard = () => {
         </div>
         
         <nav className="flex-1 px-4 space-y-2 mt-4">
-          <button className="w-full flex items-center space-x-3 px-4 py-3 bg-white/[0.05] text-white rounded-xl border border-white/[0.05] shadow-[0_0_20px_rgba(0,0,0,0.2)] transition-all">
+          <button onClick={() => navigate('/dashboard')} className="w-full flex items-center space-x-3 px-4 py-3 bg-white/[0.05] text-white rounded-xl border border-white/[0.05] shadow-[0_0_20px_rgba(0,0,0,0.2)] transition-all">
             <LayoutDashboard size={18} className="text-indigo-400" />
             <span className="font-medium text-sm">Dashboard</span>
           </button>
-          <button onClick={() => navigate("/studio")} className="w-full flex items-center space-x-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-white/[0.02] rounded-xl transition-all group">
+          <button onClick={() => navigate('/studio')} className="w-full flex items-center space-x-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-white/[0.02] rounded-xl transition-all group">
             <Code size={18} className="group-hover:text-purple-400 transition-colors" />
             <span className="font-medium text-sm">AI Studio</span>
           </button>
-          <button className="w-full flex items-center space-x-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-white/[0.02] rounded-xl transition-all group">
+          <button onClick={() => navigate('/billing')} className="w-full flex items-center space-x-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-white/[0.02] rounded-xl transition-all group">
             <CreditCard size={18} className="group-hover:text-emerald-400 transition-colors" />
             <span className="font-medium text-sm">Billing</span>
           </button>
