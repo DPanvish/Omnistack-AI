@@ -231,3 +231,54 @@
    - Sent the saved JWT token in the `Authorization: Bearer <token>` header.
    - Replaced the simulated code generation result with the real backend response and displayed returned code in the Monaco editor.
    - Added error handling so failed generation requests show an error message in the editor.
+
+11. Switch AI generation to Groq and return multi-file output
+   Command:
+   ```bash
+   cd server
+   npm install groq-sdk
+   ```
+   Installed dependencies:
+   - `groq-sdk`: Groq Node.js SDK used by the backend to call Groq-hosted chat completion models for faster AI code generation.
+   Environment setup:
+   - Added `GROQ_API_KEY` to `server/.env` so the backend can authenticate Groq API requests without hardcoding secrets.
+   - Created `src/config/env.js` to load environment variables from `server/.env` consistently before the rest of the server starts.
+   Backend setup changes:
+   - Updated `index.js` to import `src/config/env.js` instead of calling `dotenv.config()` directly.
+   - Updated `src/controllers/aiController.js` to use `groq-sdk` instead of the OpenAI client for the AI generation pipeline.
+   - Used `llama-3.3-70b-versatile` for both the architect and developer generation steps.
+   - Changed the developer response to JSON output mode with a top-level `files` object, where each key is a generated file path and each value is that file's code.
+   - Returned `files`, `blueprint`, and `generationsUsed` from `POST /api/ai/generate`.
+   Frontend setup changes:
+   - Updated `src/pages/Studio.jsx` to store generated files as an object instead of a single code string.
+   - Added a file explorer and editor tabs so users can browse generated files.
+   - Added language detection for Monaco based on each generated file extension.
+   - Updated generation error handling to show an `error.log` file in the Studio.
+
+12. Add Razorpay payment order and verification backend
+
+   Command:
+
+   ```bash
+   cd server
+   npm install razorpay
+   ```
+
+   Installed dependencies:
+
+   - `razorpay`: Razorpay Node.js SDK used by the backend to create payment orders and integrate paid subscription upgrades.
+
+   Environment setup:
+
+   - Added `RAZORPAY_KEY_ID` to `server/.env` so the backend can identify the Razorpay account.
+   - Added `RAZORPAY_KEY_SECRET` to `server/.env` so the backend can create orders and verify payment signatures without hardcoding secrets.
+
+   Backend setup changes:
+
+   - Created `src/controllers/paymentController.js` with payment order creation and payment verification logic.
+   - Added plan pricing for `basic`, `premium`, and `enterprise` tiers in INR paise.
+   - Used Razorpay orders to create checkout-ready payment orders for selected plans.
+   - Used Node.js `crypto` HMAC SHA-256 verification to validate Razorpay payment signatures.
+   - Updated the authenticated user's `subscriptionTier` after successful payment verification.
+   - Reset the user's `generationsCount` after a successful subscription upgrade.
+   - Created `src/routes/paymentRoutes.js` with protected `POST /create-order` and `POST /verify` payment endpoints.

@@ -6,6 +6,7 @@ import helmet from 'helmet';
 import connectDB from './src/config/db.js';
 import authRoutes from './src/routes/authRoutes.js';
 import aiRoutes from './src/routes/aiRoutes.js';
+import paymentRoutes from './src/routes/paymentRoutes.js';
 
 // Connect to Database
 connectDB();
@@ -31,6 +32,7 @@ app.use(limiter);
 
 app.use('/api/auth', authRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/payment', paymentRoutes);
 
 app.get('/', (req, res) => {
   res.json({ message: 'OmniStack AI API is running natively with ES Modules!' });
