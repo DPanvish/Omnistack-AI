@@ -1,21 +1,26 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useMutation } from '@tanstack/react-query';
 import Editor from '@monaco-editor/react';
 import { Sparkles, Send, FileCode2, FolderTree, Code2, Play, Terminal, Save, LoaderCircle, Check } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import useAuthStore from '../store/authStore';
 
 const Studio = () => {
+  const location = useLocation();
+  const existingProject = location.state?.project;
+
   const [prompt, setPrompt] = useState('');
-  const [files, setFiles] = useState({
+  const [files, setFiles] = useState(existingProject?.files || {
     "README.md": "# OmniStack Workspace\n\n1. Type a prompt on the left.\n2. Watch the multi-agent AI build your architecture.\n3. Browse generated files here."
   });
-  const [activeFile, setActiveFile] = useState("README.md");
+  const [activeFile, setActiveFile] = useState(
+    existingProject ? Object.keys(existingProject.files)[0] : "README.md"
+  );
   
-  const [projectId, setProjectId] = useState(null);
-  const [projectName, setProjectName] = useState("Untitled Workspace");
-  const [isSaved, setIsSaved] = useState(false);
+  const [projectId, setProjectId] = useState(existingProject?._id || null);
+  const [projectName, setProjectName] = useState(existingProject?.name || "Untitled Workspace");
+  const [isSaved, setIsSaved] = useState(true);
   
   const token = useAuthStore((state) => state.token);
   const navigate = useNavigate();
