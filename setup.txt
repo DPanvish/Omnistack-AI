@@ -199,3 +199,35 @@
    - Created `src/pages/Studio.jsx` with a prompt panel, simulated code generation flow, Monaco editor output, and copy-to-clipboard action.
    - Updated `src/pages/Dashboard.jsx` with the logged-in dashboard UI, logout handling, usage card, and entry point for the AI Studio.
    - Added custom Tailwind utility/background styling in `src/index.css` for the grid background and ambient glow effects.
+
+10. Add OpenAI-powered backend code generation
+
+   Command:
+
+   ```bash
+   cd server
+   npm install openai
+   ```
+
+   Installed dependencies:
+
+   - `openai`: Official OpenAI Node.js SDK used by the backend to call OpenAI models for AI-assisted code generation.
+
+   Environment setup:
+
+   - Added `OPENAI_API_KEY` to `server/.env` so the backend can authenticate OpenAI API requests without hardcoding secrets.
+
+   Backend setup changes:
+
+   - Created `src/controllers/aiController.js` with a protected `generateCode` controller.
+   - Added a two-step AI generation flow: one model call creates an architectural blueprint, and another model call generates code from that blueprint.
+   - Updated the user generation count after successful code generation.
+   - Created `src/routes/aiRoutes.js` with `POST /generate`, protected by the JWT auth middleware.
+   - Mounted AI routes under `/api/ai` in `index.js`.
+
+   Frontend setup changes:
+
+   - Updated `src/pages/Studio.jsx` to call `POST http://localhost:5000/api/ai/generate`.
+   - Sent the saved JWT token in the `Authorization: Bearer <token>` header.
+   - Replaced the simulated code generation result with the real backend response and displayed returned code in the Monaco editor.
+   - Added error handling so failed generation requests show an error message in the editor.
