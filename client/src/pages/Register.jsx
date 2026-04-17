@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
 import useAuthStore from '../store/authStore';
+import { Sparkles, ArrowRight, LoaderCircle, UserPlus } from 'lucide-react';
 
 const Register = () => {
   const [formData, setFormData] = useState({ name: '', email: '', password: '' });
@@ -32,54 +33,74 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#0f172a] text-slate-200 p-4">
+    // Premium Background & Layout
+    <div className="min-h-screen flex items-center justify-center bg-[#030712] text-slate-200 p-4 relative overflow-hidden font-sans">
+      
+      {/* Ambient Glows */}
+      <div className="ambient-glow glow-1 opacity-20"></div>
+      <div className="ambient-glow glow-2 opacity-20"></div>
+      <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:32px_32px] z-0"></div>
+
       <motion.div 
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, ease: "easeOut" }}
-        className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-8"
+        initial={{ opacity: 0, y: 30, scale: 0.95 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+        // Glassmorphic Card
+        className="w-full max-w-lg bg-white/[0.02] backdrop-blur-3xl border border-white/[0.05] rounded-3xl shadow-2xl p-10 lg:p-12 z-10 relative overflow-hidden"
       >
-        <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-indigo-500 bg-clip-text text-transparent">
-            Join OmniStack AI
+        {/* Sublte top highlight border */}
+        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-purple-500/50 to-transparent"></div>
+
+        <div className="text-center mb-10">
+          <motion.div 
+            initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.2, type: "spring" }}
+            className="inline-flex items-center space-x-2 mb-4 p-2.5 px-4 bg-purple-500/10 rounded-full border border-purple-500/20 shadow-[0_0_15px_rgba(168,85,247,0.2)]"
+          >
+              <UserPlus size={18} className="text-purple-400" />
+              <span className="text-sm font-semibold bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">
+                  Access OmniStack Force
+              </span>
+          </motion.div>
+          <h2 className="text-4xl font-extrabold bg-gradient-to-b from-white to-slate-400 bg-clip-text text-transparent tracking-tighter">
+            Initiate Forge
           </h2>
-          <p className="text-slate-400 mt-2">Start generating production-ready code today.</p>
+          <p className="text-slate-400 mt-2 max-w-sm mx-auto leading-relaxed">Create your account and start generating productions apps instantly.</p>
         </div>
 
-        {/* Display TanStack Query Error */}
         {registerMutation.isError && (
-          <div className="bg-red-500/10 border border-red-500/50 text-red-400 p-3 rounded-lg mb-6 text-sm">
+          <motion.div initial={{opacity: 0}} animate={{opacity: 1}} className="bg-red-500/10 border border-red-500/30 text-red-400 p-4 rounded-xl mb-8 text-sm text-center">
             {registerMutation.error.message}
-          </div>
+          </motion.div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label className="block text-sm font-medium text-slate-400 mb-1">Full Name</label>
+            <label className="block text-sm font-medium text-slate-300 mb-1.5 ml-1">Full Name</label>
             <input 
               type="text" 
-              placeholder="e.g. John Doe"
-              className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-all"
+              placeholder="Panvish Developer"
+              // Premium Input Styling
+              className="w-full px-5 py-3.5 bg-black/30 backdrop-blur-sm border border-white/[0.05] rounded-xl text-white placeholder:text-slate-600 focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 focus:outline-none transition-all duration-150"
               onChange={(e) => setFormData({...formData, name: e.target.value})}
               required
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-400 mb-1">Email Address</label>
+            <label className="block text-sm font-medium text-slate-300 mb-1.5 ml-1">Email Address</label>
             <input 
               type="email" 
-              placeholder="you@example.com"
-              className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-all"
+              placeholder="you@nexus.dev"
+              className="w-full px-5 py-3.5 bg-black/30 backdrop-blur-sm border border-white/[0.05] rounded-xl text-white placeholder:text-slate-600 focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 focus:outline-none transition-all duration-150"
               onChange={(e) => setFormData({...formData, email: e.target.value})}
               required
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-400 mb-1">Password</label>
+            <label className="block text-sm font-medium text-slate-300 mb-1.5 ml-1">Password</label>
             <input 
               type="password" 
               placeholder="••••••••"
-              className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-all"
+              className="w-full px-5 py-3.5 bg-black/30 backdrop-blur-sm border border-white/[0.05] rounded-xl text-white placeholder:text-slate-600 focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 focus:outline-none transition-all duration-150"
               onChange={(e) => setFormData({...formData, password: e.target.value})}
               required
             />
@@ -88,14 +109,25 @@ const Register = () => {
           <button 
             type="submit"
             disabled={registerMutation.isPending}
-            className="w-full py-3 mt-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold rounded-lg shadow-lg transform transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center"
+            // Premium Button style (using Purple gradient to match UserPlus icon)
+            className="w-full group py-4 mt-6 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold rounded-xl shadow-[0_0_25px_rgba(168,85,247,0.3)] hover:shadow-[0_0_35px_rgba(168,85,247,0.5)] transform transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center space-x-2"
           >
-            {registerMutation.isPending ? 'Creating Account...' : 'Create Account'}
+            {registerMutation.isPending ? (
+              <>
+                <LoaderCircle className="animate-spin" size={20} />
+                <span>Creating Account...</span>
+              </>
+            ) : (
+                <>
+                  <span>Begin Creation</span>
+                  <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                </>
+            )}
           </button>
         </form>
 
-        <p className="text-center text-slate-400 mt-6 text-sm">
-          Already have an account? <Link to="/login" className="text-indigo-400 hover:text-indigo-300 font-medium">Sign in</Link>
+        <p className="text-center text-slate-500 mt-10 text-sm">
+          Already a creator? <Link to="/login" className="text-purple-400 hover:text-purple-300 font-semibold tracking-tight">Sign in instead</Link>
         </p>
       </motion.div>
     </div>
