@@ -4,6 +4,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import Studio from './pages/Studio';
+import Billing from './pages/Billing';
 import ProtectedRoute from './components/ProtectedRoute';
 
 const queryClient = new QueryClient({
@@ -29,6 +30,7 @@ function App() {
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/studio" element={<Studio />} />
+            <Route path="/billing" element={<Billing />} />
           </Route>
         </Routes>
       </Router>
