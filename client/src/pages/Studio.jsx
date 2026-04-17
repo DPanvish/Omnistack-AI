@@ -2,17 +2,20 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useMutation } from '@tanstack/react-query';
 import Editor from '@monaco-editor/react';
-import { Sparkles, Send, FileCode2, FolderTree, Code2, Play, Terminal, ChevronRight } from 'lucide-react';
+import { Sparkles, Send, FileCode2, FolderTree, Code2, Play, Terminal, Save, LoaderCircle, Check } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import useAuthStore from '../store/authStore';
 
 const Studio = () => {
   const [prompt, setPrompt] = useState('');
-  // Store files as an object: { "src/App.jsx": "code...", "package.json": "code..." }
   const [files, setFiles] = useState({
     "README.md": "# OmniStack Workspace\n\n1. Type a prompt on the left.\n2. Watch the multi-agent AI build your architecture.\n3. Browse generated files here."
   });
   const [activeFile, setActiveFile] = useState("README.md");
+  
+  const [projectId, setProjectId] = useState(null);
+  const [projectName, setProjectName] = useState("Untitled Workspace");
+  const [isSaved, setIsSaved] = useState(false);
   
   const token = useAuthStore((state) => state.token);
   const navigate = useNavigate();
@@ -34,15 +37,34 @@ const Studio = () => {
     onSuccess: (data) => {
       if (data.files && Object.keys(data.files).length > 0) {
         setFiles(data.files);
-        // Automatically open the first generated file (usually package.json or App.jsx)
-        setActiveFile(Object.keys(data.files)[0]); 
+        setActiveFile(Object.keys(data.files)[0]);
+        setIsSaved(false); 
       }
     },
-    onError: (error) => {
-      setFiles({
-        "error.log": `// Error during generation:\n${error.message}`
+  });
+
+  const saveProjectMutation = useMutation({
+    mutationFn: async () => {
+      const res = await fetch('http://localhost:5000/api/projects/save', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          projectId,
+          name: projectName,
+          files
+        })
       });
-      setActiveFile("error.log");
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.message || 'Failed to save project');
+      return result;
+    },
+    onSuccess: (data) => {
+      setProjectId(data._id); 
+      setIsSaved(true);
+      setTimeout(() => setIsSaved(false), 3000); 
     }
   });
 
@@ -51,7 +73,6 @@ const Studio = () => {
     generateCodeMutation.mutate(prompt);
   };
 
-  // Helper to determine language for Monaco based on file extension
   const getLanguage = (fileName) => {
     if (fileName.endsWith('.jsx') || fileName.endsWith('.js')) return 'javascript';
     if (fileName.endsWith('.css')) return 'css';
@@ -70,12 +91,44 @@ const Studio = () => {
           <button onClick={() => navigate('/dashboard')} className="text-slate-400 hover:text-white transition-colors text-sm font-medium">
             ← Dashboard
           </button>
-          <div className="flex items-center space-x-2 bg-white/[0.03] px-3 py-1.5 rounded-md border border-white/[0.05]">
+          
+          {/* Editable Project Name */}
+          <div className="flex items-center space-x-2 bg-white/[0.03] px-3 py-1.5 rounded-md border border-white/[0.05] group focus-within:border-indigo-500/50 transition-colors">
             <FolderTree size={16} className="text-indigo-400" />
-            <span className="text-sm font-medium text-slate-300">workspace_xyz</span>
+            <input 
+              type="text"
+              value={projectName}
+              onChange={(e) => {
+                setProjectName(e.target.value);
+                setIsSaved(false);
+              }}
+              className="bg-transparent border-none outline-none text-sm font-medium text-slate-300 w-40 placeholder:text-slate-600"
+              placeholder="Project Name..."
+            />
           </div>
         </div>
+        
         <div className="flex items-center space-x-3">
+          {/* The Save Button */}
+          <button 
+            onClick={() => saveProjectMutation.mutate()}
+            disabled={saveProjectMutation.isPending}
+            className={`px-4 py-1.5 rounded-md text-sm font-semibold flex items-center space-x-2 transition-all ${
+              isSaved 
+                ? 'bg-green-500/10 text-green-400 border border-green-500/20' 
+                : 'bg-white/[0.05] hover:bg-white/[0.1] text-white border border-white/[0.1]'
+            }`}
+          >
+            {saveProjectMutation.isPending ? (
+              <LoaderCircle size={14} className="animate-spin" />
+            ) : isSaved ? (
+              <Check size={14} />
+            ) : (
+              <Save size={14} />
+            )}
+            <span>{saveProjectMutation.isPending ? 'Saving...' : isSaved ? 'Saved' : 'Save Workspace'}</span>
+          </button>
+
           <button className="px-4 py-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 rounded-md text-sm font-semibold flex items-center space-x-2 transition-colors">
             <Play size={14} />
             <span>Deploy</span>
@@ -94,7 +147,6 @@ const Studio = () => {
           </div>
           
           <div className="flex-1 p-5 overflow-y-auto">
-            {/* Future Chat History could go here */}
             <div className="bg-indigo-500/5 border border-indigo-500/10 rounded-xl p-4 mb-4">
               <p className="text-sm text-indigo-300/80 leading-relaxed">
                 Describe the web app you want to build. OmniStack will generate the complete file structure and code.
@@ -102,7 +154,6 @@ const Studio = () => {
             </div>
           </div>
 
-          {/* Input Area */}
           <div className="p-5 border-t border-white/[0.05] bg-black/40">
             <textarea
               value={prompt}
@@ -155,7 +206,6 @@ const Studio = () => {
 
         {/* Pane 3: Code Editor (Right) */}
         <section className="flex-1 flex flex-col bg-[#1e1e1e]">
-          {/* Editor Tabs */}
           <div className="flex bg-[#181818] overflow-x-auto custom-scrollbar">
             {Object.keys(files).map((fileName) => (
                <div 
@@ -191,6 +241,10 @@ const Studio = () => {
               language={getLanguage(activeFile)}
               theme="vs-dark"
               value={files[activeFile]}
+              onChange={(value) => {
+                setFiles(prev => ({ ...prev, [activeFile]: value }));
+                setIsSaved(false);
+              }}
               options={{
                 minimap: { enabled: false },
                 fontSize: 14,
