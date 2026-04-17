@@ -133,3 +133,48 @@
    - Created database connection setup in `src/config/db.js` using `mongoose.connect(process.env.MONGO_URI)`.
    - Updated `index.js` to load environment variables with `dotenv.config()` and connect to MongoDB before starting the API server.
    - Created `src/models/User.js` with a Mongoose user schema for account data, subscription tier, generation count, and timestamps.
+
+7. Add authentication API routes and request rate limiting
+
+   Command:
+
+   ```bash
+   cd server
+   npm install express-rate-limit
+   ```
+
+   Installed dependencies:
+
+   - `express-rate-limit`: Middleware used to limit repeated requests from the same IP address and reduce abuse of API endpoints.
+
+   Backend setup changes:
+
+   - Added global rate limiting in `index.js` with a 15 minute window and a 100 request limit per IP.
+   - Mounted authentication routes under `/api/auth` in `index.js`.
+   - Created `src/controllers/authController.js` with register, login, and profile controller logic.
+   - Created `src/routes/authRoutes.js` for `/register`, `/login`, and protected `/profile` auth endpoints.
+   - Created `src/middlewares/authMiddleware.js` to verify Bearer JWT tokens and attach the authenticated user to `req.user`.
+   - Updated `src/models/User.js` so emails are normalized with lowercase and trim, and passwords are excluded from default query results.
+
+8. Add frontend authentication pages and API mutation handling
+
+   Command:
+
+   ```bash
+   cd client
+   npm install @tanstack/react-query
+   ```
+
+   Installed dependencies:
+
+   - `@tanstack/react-query`: Server-state library used to manage async API calls, loading states, success callbacks, and error handling for login and registration requests.
+
+   Frontend setup changes:
+
+   - Wrapped the React app with `QueryClientProvider` in `src/App.jsx`.
+   - Created routes for `/login`, `/register`, and `/dashboard` using `react-router-dom`.
+   - Redirected the root route `/` to `/login`.
+   - Created `src/store/authStore.js` with Zustand to store the logged-in user and JWT token in local storage.
+   - Created `src/pages/Login.jsx` to call `POST http://localhost:5000/api/auth/login`, save credentials, and navigate to the dashboard.
+   - Created `src/pages/Register.jsx` to call `POST http://localhost:5000/api/auth/register`, save credentials, and navigate to the dashboard.
+   - Created `src/pages/Dashboard.jsx` as the initial protected app area placeholder.
