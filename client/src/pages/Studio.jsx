@@ -1,27 +1,48 @@
 import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useMutation } from '@tanstack/react-query';
 import Editor from '@monaco-editor/react';
-import { Sparkles, Send, Bot, Code2, Copy, Check, Terminal } from 'lucide-react';
+import { Sparkles, Send, FileCode2, FolderTree, Code2, Play, Terminal, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import useAuthStore from '../store/authStore';
 
 const Studio = () => {
   const [prompt, setPrompt] = useState('');
-  const [generatedCode, setGeneratedCode] = useState('// Your generated MERN stack code will appear here...\n\n// 1. Enter a prompt on the left.\n// 2. Click Generate.\n// 3. Watch OmniStack build your architecture.');
-  const [copied, setCopied] = useState(false);
+  // Store files as an object: { "src/App.jsx": "code...", "package.json": "code..." }
+  const [files, setFiles] = useState({
+    "README.md": "# OmniStack Workspace\n\n1. Type a prompt on the left.\n2. Watch the multi-agent AI build your architecture.\n3. Browse generated files here."
+  });
+  const [activeFile, setActiveFile] = useState("README.md");
+  
+  const token = useAuthStore((state) => state.token);
   const navigate = useNavigate();
 
   const generateCodeMutation = useMutation({
     mutationFn: async (userPrompt) => {
-      // Simulating network/AI delay
-      return new Promise((resolve) => {
-        setTimeout(() => {
-          resolve(`// Generated Code for: ${userPrompt}\n\nimport React from 'react';\n\nconst GeneratedComponent = () => {\n  return (\n    <div className="p-4 bg-slate-900 text-white rounded-lg">\n      <h1>Hello from OmniStack AI</h1>\n      <p>This component was dynamically generated.</p>\n    </div>\n  );\n};\n\nexport default GeneratedComponent;`);
-        }, 2000);
+      const res = await fetch('http://localhost:5000/api/ai/generate', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}` 
+        },
+        body: JSON.stringify({ prompt: userPrompt }),
       });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.message || 'Failed to generate code');
+      return result;
     },
     onSuccess: (data) => {
-      setGeneratedCode(data);
+      if (data.files && Object.keys(data.files).length > 0) {
+        setFiles(data.files);
+        // Automatically open the first generated file (usually package.json or App.jsx)
+        setActiveFile(Object.keys(data.files)[0]); 
+      }
+    },
+    onError: (error) => {
+      setFiles({
+        "error.log": `// Error during generation:\n${error.message}`
+      });
+      setActiveFile("error.log");
     }
   });
 
@@ -30,119 +51,152 @@ const Studio = () => {
     generateCodeMutation.mutate(prompt);
   };
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(generatedCode);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  // Helper to determine language for Monaco based on file extension
+  const getLanguage = (fileName) => {
+    if (fileName.endsWith('.jsx') || fileName.endsWith('.js')) return 'javascript';
+    if (fileName.endsWith('.css')) return 'css';
+    if (fileName.endsWith('.json')) return 'json';
+    if (fileName.endsWith('.html')) return 'html';
+    return 'markdown';
   };
 
   return (
     <div className="h-screen flex flex-col bg-[#030712] text-slate-200 overflow-hidden font-sans relative">
-      {/* Ambient Background */}
       <div className="ambient-glow glow-1 opacity-10"></div>
-      <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:32px_32px] z-0 pointer-events-none"></div>
-
-      {/* Top Navigation Bar */}
-      <header className="h-16 border-b border-white/[0.05] bg-white/[0.01] backdrop-blur-md flex items-center justify-between px-6 z-10">
+      
+      {/* Top Nav */}
+      <header className="h-14 border-b border-white/[0.05] bg-[#0a0a0a] flex items-center justify-between px-4 z-10">
         <div className="flex items-center space-x-4">
           <button onClick={() => navigate('/dashboard')} className="text-slate-400 hover:text-white transition-colors text-sm font-medium">
-            ← Back to Dashboard
+            ← Dashboard
           </button>
-          <div className="h-4 w-[1px] bg-white/[0.1]"></div>
-          <div className="flex items-center space-x-2">
-            <Bot size={18} className="text-indigo-400" />
-            <span className="font-semibold bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
-              OmniStack Studio
-            </span>
+          <div className="flex items-center space-x-2 bg-white/[0.03] px-3 py-1.5 rounded-md border border-white/[0.05]">
+            <FolderTree size={16} className="text-indigo-400" />
+            <span className="text-sm font-medium text-slate-300">workspace_xyz</span>
           </div>
         </div>
         <div className="flex items-center space-x-3">
-            <span className="px-3 py-1 bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs font-semibold rounded-full flex items-center space-x-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse"></span>
-              <span>AI Engine Ready</span>
-            </span>
+          <button className="px-4 py-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 rounded-md text-sm font-semibold flex items-center space-x-2 transition-colors">
+            <Play size={14} />
+            <span>Deploy</span>
+          </button>
         </div>
       </header>
 
-      {/* Main Studio Area */}
+      {/* Main IDE Area */}
       <main className="flex-1 flex overflow-hidden z-10">
         
-        {/* Left Panel: Prompt Input */}
-        <aside className="w-1/3 lg:w-[400px] border-r border-white/[0.05] bg-black/20 backdrop-blur-xl flex flex-col relative">
-          <div className="p-6 flex-1 flex flex-col">
-            <h3 className="text-lg font-bold text-white mb-2 flex items-center space-x-2">
-              <Sparkles size={18} className="text-purple-400" />
-              <span>Architect Prompt</span>
-            </h3>
-            <p className="text-sm text-slate-400 mb-6 leading-relaxed">
-              Describe the component, backend logic, or full mobile screen you want to generate. Be specific about the MERN stack or React Native details.
-            </p>
-            
-            <div className="flex-1 relative group">
-              <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-2xl blur opacity-0 group-hover:opacity-20 transition duration-500"></div>
-              <textarea
-                value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
-                placeholder="e.g., Create a secure Express.js REST API with JWT authentication and MongoDB connection..."
-                className="relative w-full h-full p-5 bg-[#0a0a0a] border border-white/[0.1] rounded-2xl resize-none focus:outline-none focus:border-indigo-500/50 text-slate-200 placeholder:text-slate-600 transition-all shadow-inner"
-              />
+        {/* Pane 1: AI Command Center (Left) */}
+        <aside className="w-[350px] border-r border-white/[0.05] bg-[#0a0a0a]/80 backdrop-blur-xl flex flex-col relative z-20">
+          <div className="p-5 border-b border-white/[0.05] flex items-center space-x-2">
+            <Sparkles size={18} className="text-purple-400" />
+            <h3 className="text-sm font-bold text-white uppercase tracking-wider">AI Architect</h3>
+          </div>
+          
+          <div className="flex-1 p-5 overflow-y-auto">
+            {/* Future Chat History could go here */}
+            <div className="bg-indigo-500/5 border border-indigo-500/10 rounded-xl p-4 mb-4">
+              <p className="text-sm text-indigo-300/80 leading-relaxed">
+                Describe the web app you want to build. OmniStack will generate the complete file structure and code.
+              </p>
             </div>
+          </div>
 
+          {/* Input Area */}
+          <div className="p-5 border-t border-white/[0.05] bg-black/40">
+            <textarea
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              placeholder="E.g., Build a React authentication flow with a Tailwind login screen..."
+              className="w-full h-32 p-4 bg-white/[0.02] border border-white/[0.05] rounded-xl resize-none focus:outline-none focus:border-indigo-500/50 focus:bg-white/[0.05] text-sm text-slate-200 placeholder:text-slate-600 transition-all shadow-inner mb-4"
+            />
             <button 
               onClick={handleGenerate}
               disabled={generateCodeMutation.isPending || !prompt.trim()}
-              className="mt-6 w-full py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold rounded-xl shadow-[0_0_20px_rgba(99,102,241,0.2)] transform transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center space-x-2"
+              className="w-full py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white text-sm font-bold rounded-lg shadow-lg transform transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center space-x-2"
             >
               {generateCodeMutation.isPending ? (
                 <span className="flex items-center space-x-2 animate-pulse">
-                  <Terminal size={18} />
-                  <span>Synthesizing Code...</span>
+                  <Terminal size={16} />
+                  <span>Building App...</span>
                 </span>
               ) : (
                 <>
-                  <span>Generate Code</span>
-                  <Send size={18} />
+                  <span>Generate Application</span>
+                  <Send size={16} />
                 </>
               )}
             </button>
           </div>
         </aside>
 
-        {/* Right Panel: Code Editor */}
-        <section className="flex-1 flex flex-col bg-[#1e1e1e]"> {/* Monaco's default dark color */}
-          <div className="h-12 border-b border-white/[0.05] bg-[#181818] flex items-center justify-between px-4">
-            <div className="flex items-center space-x-2 text-slate-400 text-sm">
-              <Code2 size={16} />
-              <span>generated_output.jsx</span>
-            </div>
-            <button 
-              onClick={handleCopy}
-              className="p-1.5 text-slate-400 hover:text-white hover:bg-white/[0.1] rounded-md transition-colors flex items-center space-x-1 text-sm"
-            >
-              {copied ? <Check size={16} className="text-green-400" /> : <Copy size={16} />}
-              <span>{copied ? 'Copied' : 'Copy Code'}</span>
-            </button>
+        {/* Pane 2: File Explorer (Middle) */}
+        <aside className="w-[250px] border-r border-white/[0.05] bg-[#0f111a] flex flex-col">
+          <div className="p-3 border-b border-white/[0.05]">
+            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider pl-2">Explorer</span>
+          </div>
+          <div className="flex-1 overflow-y-auto py-2">
+            {Object.keys(files).map((fileName) => (
+              <button
+                key={fileName}
+                onClick={() => setActiveFile(fileName)}
+                className={`w-full flex items-center space-x-2 px-4 py-1.5 text-sm transition-colors ${
+                  activeFile === fileName 
+                    ? 'bg-indigo-500/20 text-indigo-300 border-r-2 border-indigo-400' 
+                    : 'text-slate-400 hover:bg-white/[0.02] hover:text-slate-200'
+                }`}
+              >
+                <FileCode2 size={14} className={activeFile === fileName ? 'text-indigo-400' : 'text-slate-500'} />
+                <span className="truncate">{fileName}</span>
+              </button>
+            ))}
+          </div>
+        </aside>
+
+        {/* Pane 3: Code Editor (Right) */}
+        <section className="flex-1 flex flex-col bg-[#1e1e1e]">
+          {/* Editor Tabs */}
+          <div className="flex bg-[#181818] overflow-x-auto custom-scrollbar">
+            {Object.keys(files).map((fileName) => (
+               <div 
+                  key={fileName}
+                  onClick={() => setActiveFile(fileName)}
+                  className={`px-4 py-2 flex items-center space-x-2 cursor-pointer border-r border-white/[0.05] min-w-max text-sm ${
+                    activeFile === fileName 
+                      ? 'bg-[#1e1e1e] text-indigo-400 border-t-2 border-t-indigo-500' 
+                      : 'bg-[#181818] text-slate-500 hover:bg-[#1a1a1a]'
+                  }`}
+               >
+                 <Code2 size={14} />
+                 <span>{fileName}</span>
+               </div>
+            ))}
           </div>
           
           <div className="flex-1 relative">
-            {generateCodeMutation.isPending && (
-              <div className="absolute inset-0 bg-[#1e1e1e]/80 backdrop-blur-sm z-10 flex flex-col items-center justify-center">
-                <div className="w-12 h-12 border-4 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin mb-4"></div>
-                <p className="text-indigo-400 font-medium animate-pulse">AI Agents are writing your code...</p>
-              </div>
-            )}
+            <AnimatePresence>
+              {generateCodeMutation.isPending && (
+                <motion.div 
+                  initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                  className="absolute inset-0 bg-[#1e1e1e]/80 backdrop-blur-sm z-10 flex flex-col items-center justify-center"
+                >
+                  <div className="w-12 h-12 border-4 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin mb-4"></div>
+                  <p className="text-indigo-400 font-medium">Agents are structuring files...</p>
+                </motion.div>
+              )}
+            </AnimatePresence>
+            
             <Editor
               height="100%"
-              defaultLanguage="javascript"
+              language={getLanguage(activeFile)}
               theme="vs-dark"
-              value={generatedCode}
+              value={files[activeFile]}
               options={{
                 minimap: { enabled: false },
                 fontSize: 14,
-                padding: { top: 24 },
+                padding: { top: 16 },
                 scrollBeyondLastLine: false,
-                smoothScrolling: true,
-                cursorBlinking: "smooth",
+                wordWrap: "on",
               }}
             />
           </div>

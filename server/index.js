@@ -1,12 +1,11 @@
+import './src/config/env.js';
 import rateLimit from 'express-rate-limit';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
-import dotenv from 'dotenv';
 import connectDB from './src/config/db.js';
 import authRoutes from './src/routes/authRoutes.js';
-
-dotenv.config();
+import aiRoutes from './src/routes/aiRoutes.js';
 
 // Connect to Database
 connectDB();
@@ -31,6 +30,7 @@ const limiter = rateLimit({
 app.use(limiter);
 
 app.use('/api/auth', authRoutes);
+app.use('/api/ai', aiRoutes);
 
 app.get('/', (req, res) => {
   res.json({ message: 'OmniStack AI API is running natively with ES Modules!' });
